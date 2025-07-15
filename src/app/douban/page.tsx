@@ -4,11 +4,12 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-import { DoubanItem, DoubanResult } from '@/lib/types';
+import { getDoubanData } from '@/lib/douban.client';
+import { DoubanItem } from '@/lib/types';
 
-import DemoCard from '@/components/DemoCard';
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import PageLayout from '@/components/PageLayout';
+import VideoCard from '@/components/VideoCard';
 
 function DoubanPageClient() {
   const searchParams = useSearchParams();
@@ -45,15 +46,12 @@ function DoubanPageClient() {
     const loadInitialData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/douban?type=${type}&tag=${tag}&pageSize=25&pageStart=0`
-        );
-
-        if (!response.ok) {
-          throw new Error('获取豆瓣数据失败');
-        }
-
-        const data: DoubanResult = await response.json();
+        const data = await getDoubanData({
+          type: type as 'tv' | 'movie',
+          tag,
+          pageSize: 25,
+          pageStart: 0,
+        });
 
         if (data.code === 200) {
           setDoubanData(data.list);
@@ -78,17 +76,12 @@ function DoubanPageClient() {
         try {
           setIsLoadingMore(true);
 
-          const response = await fetch(
-            `/api/douban?type=${type}&tag=${tag}&pageSize=25&pageStart=${
-              currentPage * 25
-            }`
-          );
-
-          if (!response.ok) {
-            throw new Error('获取豆瓣数据失败');
-          }
-
-          const data: DoubanResult = await response.json();
+          const data = await getDoubanData({
+            type: type as 'tv' | 'movie',
+            tag,
+            pageSize: 25,
+            pageStart: currentPage * 25,
+          });
 
           if (data.code === 200) {
             setDoubanData((prev) => [...prev, ...data.list]);
@@ -198,12 +191,12 @@ function DoubanPageClient() {
                   : // 显示实际数据
                     doubanData.map((item, index) => (
                       <div key={`${item.title}-${index}`} className='w-full'>
-                        <DemoCard
-                          id={item.id}
+                        <VideoCard
+                          from='douban'
                           title={item.title}
                           poster={item.poster}
+                          douban_id={item.id}
                           rate={item.rate}
-                          type={type || 'movie'}
                         />
                       </div>
                     ))}
