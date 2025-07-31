@@ -34,6 +34,7 @@ interface VideoCardProps {
   onDelete?: () => void;
   rate?: string;
   items?: SearchResult[];
+  type?: string;
 }
 
 export default function VideoCard({
@@ -52,6 +53,7 @@ export default function VideoCard({
   onDelete,
   rate,
   items,
+  type = '',
 }: VideoCardProps) {
   const router = useRouter();
   const [favorited, setFavorited] = useState(false);
@@ -105,10 +107,10 @@ export default function VideoCard({
   const actualYear = aggregateData?.first.year ?? year;
   const actualQuery = query || '';
   const actualSearchType = isAggregate
-    ? aggregateData?.first.episodes.length === 1
+    ? aggregateData?.first.episodes?.length === 1
       ? 'movie'
       : 'tv'
-    : '';
+    : type;
 
   // 获取收藏状态
   useEffect(() => {
@@ -195,7 +197,11 @@ export default function VideoCard({
 
   const handleClick = useCallback(() => {
     if (from === 'douban') {
-      router.push(`/play?title=${encodeURIComponent(actualTitle.trim())}`);
+      router.push(
+        `/play?title=${encodeURIComponent(actualTitle.trim())}${
+          actualYear ? `&year=${actualYear}` : ''
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`
+      );
     } else if (actualSource && actualId) {
       router.push(
         `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
@@ -263,7 +269,7 @@ export default function VideoCard({
 
   return (
     <div
-      className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[9999]'
+      className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500]'
       onClick={handleClick}
     >
       {/* 海报容器 */}

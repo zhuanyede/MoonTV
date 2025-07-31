@@ -1,18 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use client';
 
-import {
-  Clover,
-  Film,
-  Home,
-  Menu,
-  MessageCircleHeart,
-  MountainSnow,
-  Search,
-  Star,
-  Swords,
-  Tv,
-  VenetianMask,
-} from 'lucide-react';
+import { Clover, Film, Home, Menu, Search, Star, Tv } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -134,36 +124,39 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     isCollapsed,
   };
 
-  const menuItems = [
+  const [menuItems, setMenuItems] = useState([
     {
       icon: Film,
-      label: '热门电影',
-      href: '/douban?type=movie&tag=热门&title=热门电影',
+      label: '电影',
+      href: '/douban?type=movie',
     },
     {
       icon: Tv,
-      label: '热门剧集',
-      href: '/douban?type=tv&tag=热门&title=热门剧集',
-    },
-    {
-      icon: Star,
-      label: '豆瓣 Top250',
-      href: '/douban?type=movie&tag=top250&title=豆瓣 Top250',
+      label: '剧集',
+      href: '/douban?type=tv',
     },
     {
       icon: Clover,
       label: '综艺',
-      href: '/douban?type=tv&tag=综艺&title=综艺',
+      href: '/douban?type=show',
     },
-    { icon: Swords, label: '美剧', href: '/douban?type=tv&tag=美剧' },
-    {
-      icon: MessageCircleHeart,
-      label: '韩剧',
-      href: '/douban?type=tv&tag=韩剧',
-    },
-    { icon: MountainSnow, label: '日剧', href: '/douban?type=tv&tag=日剧' },
-    { icon: VenetianMask, label: '日漫', href: '/douban?type=tv&tag=日本动画' },
-  ];
+  ]);
+
+  useEffect(() => {
+    const runtimeConfig = (window as any).RUNTIME_CONFIG;
+    if (runtimeConfig?.CUSTOM_CATEGORIES) {
+      setMenuItems((prevItems) => [
+        ...prevItems,
+        ...runtimeConfig.CUSTOM_CATEGORIES.map((category: any) => ({
+          icon: Star,
+          label: category.name || category.query,
+          href: `/douban?type=${category.type}&tag=${category.query}${
+            category.name ? `&name=${category.name}` : ''
+          }&custom=true`,
+        })),
+      ]);
+    }
+  }, []);
 
   return (
     <SidebarContext.Provider value={contextValue}>
